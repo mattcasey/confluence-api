@@ -24,16 +24,21 @@ interface InternalConfig extends Config {
  * Space definition
  */
 export interface Space {
-    id: number,
-    key: string,
-    type: string,
-    status: string,
+    id: number;
+    key: string;
+    name: string;
+    type: string;
+    status: string;
     _expandable: {
-        settings: string,
-        homepage: string,
-        identifiers: string,
-        [key: string]: string
-    }
+        settings: string;
+        homepage: string;
+        identifiers: string;
+        [key: string]: string;
+    };
+    _links: {
+        self: string;
+        webui: string;
+    };
 }
 
 /**
@@ -51,9 +56,9 @@ export default class Confluence {
 
     /**
      * Create a new client
-     * 
+     *
      * Password can either be the user password or a user token
-     * 
+     *
      * @param config of the client
      */
     constructor(config: Config) {
@@ -69,7 +74,7 @@ export default class Confluence {
 
     /**
      * Do a request on the API
-     * 
+     *
      * @param url to fetch
      * @param method to use
      * @param toJSON parse result into JSON Object
@@ -102,12 +107,12 @@ export default class Confluence {
     /**
      * Return all known spaces to the user
      */
-    async getSpaces(): Promise<Space[]> {
+    async getSpaces(options = ''): Promise<Space[]> {
         let spaces = [];
         let start = 0;
         let res;
         do {
-            let url = this.config.baseUrl + this.config.apiPath + "/space" + this.config.extension + `?limit=100&start=${start}`;
+            let url = this.config.baseUrl + this.config.apiPath + "/space" + this.config.extension + `?limit=100&start=${start}${options}`;
             res = await this.fetch(url, 'GET', true);
             spaces.push(...res.results);
             start = res.start + res.limit;
@@ -118,7 +123,7 @@ export default class Confluence {
 
     /**
      * Return one specific space
-     * 
+     *
      * @param space to retrieve
      * @throw Error SPACE not found if not found
      */
@@ -132,7 +137,7 @@ export default class Confluence {
     }
 
     /**
-     * 
+     *
      * @param spaceKey  to retrieve home page from
      */
     async getSpaceHomePage(spaceKey: string): Promise<Page> {
@@ -298,7 +303,7 @@ export default class Confluence {
             // read pdf processing status
             let isCompleteRegex = /<isComplete>(.*?)<\/isComplete>/;
             let isComplete = isCompleteRegex.exec(statusResAsText);
-            // 
+            //
             if (isComplete && isComplete[1] === "true") {
                 let isSuccessfullRegex = /<isSuccessful>(.*?)<\/isSuccessful>/;
                 let isSuccessful = isSuccessfullRegex.exec(statusResAsText);
