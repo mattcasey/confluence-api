@@ -161,6 +161,12 @@ export default class Confluence {
         return (await this.fetch(url));
     }
 
+    async getContentBySpace(space: string) {
+        let query = "?spaceKey=" + space + "&expand=body.storage,version";
+        let url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query;
+        return (await this.fetch(url));
+    }
+
     async postContent(space: string, title: string, content: string, parentId: string = undefined, representation: string = "storage") {
         let page = {
             "type": "page",
