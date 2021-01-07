@@ -167,7 +167,7 @@ export default class Confluence {
         return (await this.fetch(url));
     }
 
-    async postContent(space: string, title: string, content: string, parentId: string = undefined, representation: string = "storage") {
+    async postContent(space: string, title: string, content: string, parentId: string = undefined, representation: string = "storage", metadata = {}) {
         let page = {
             "type": "page",
             "title": title,
@@ -183,7 +183,8 @@ export default class Confluence {
                     "value": content,
                     "representation": representation
                 }
-            }
+            },
+            "metadata": metadata
         };
         let url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension;
         return (await this.fetch(url, 'POST', true, page))
