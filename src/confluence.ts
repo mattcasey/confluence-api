@@ -145,11 +145,11 @@ export default class Confluence {
     }
 
     async getContentById(id) {
-        let url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version";
+        let url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version,properties";
         return (await this.fetch(url));
     }
 
-    async getCustomContentById(options: any) {
+    async getCustomContentById(options: { id: string, expanders?: string[] }) {
         let expanders = options.expanders || ['body.storage', 'version'];
         let url = this.config.baseUrl + this.config.apiPath + "/content/" + options.id + this.config.extension + "?expand=" + expanders.join();
         return (await this.fetch(url));
@@ -167,7 +167,7 @@ export default class Confluence {
         return (await this.fetch(url));
     }
 
-    async postContent(space: string, title: string, content: string, parentId: string = undefined, representation: string = "storage", metadata = {}) {
+    async postContent({ space, title, content, parentId, representation = 'storage', metadata = {}, properties }: { space: string, title: string, content: string, parentId: string, representation: string, metadata, properties }) {
         let page = {
             "type": "page",
             "title": title,
@@ -184,13 +184,14 @@ export default class Confluence {
                     "representation": representation
                 }
             },
-            "metadata": metadata
+            "metadata": metadata,
+            "properties": properties
         };
         let url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension;
         return (await this.fetch(url, 'POST', true, page))
     }
 
-    async putContent(space: string, id: string, version: number, title: string, content: string, minorEdit: boolean, representation: string) {
+    async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title: string, content: string, version: string, representation: string, metadata, properties }) {
         var page = {
             "id": id,
             "type": "page",
@@ -207,7 +208,9 @@ export default class Confluence {
                     "value": content,
                     "representation": representation || "storage"
                 }
-            }
+            },
+            "metadata": metadata,
+            "properties": properties
         };
         let url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version";
         return (await this.fetch(url, 'PUT', true, page))
