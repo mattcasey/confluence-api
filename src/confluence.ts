@@ -192,15 +192,22 @@ export default class Confluence {
         return (await this.fetch(url));
     }
 
-    async getContentBySpace(space: string, options: { expanders?: string[] } = {}): Promise<Page[]> {
+    async getContentBySpace(space: string, options: { expanders?: string[], status?: 'any' | 'trashed' | 'current' } = {}): Promise<Page[]> {
         const expanders = options.expanders || DEFAULT_EXPANDERS;
-        const query = "?spaceKey=" + space + "&expand=" + expanders.join();
+        let query = "?spaceKey=" + space + "&expand=" + expanders.join();
+        if (options.status) {
+            query += `&status=${options.status}`;
+        }
         const pages = [];
         let start = 0;
         let res;
         do {
             const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query + `&limit=100&start=${start}`;
             res = await this.fetch(url, 'GET', true);
+            //console.log('res', res);
+            if (res.statusCode !== 200) {
+                throw new HttpError(res.message, res.statusCode);
+            }
             pages.push(...res.results);
             start = res.start + res.limit;
         } while (res.size === res.limit);
@@ -258,7 +265,7 @@ export default class Confluence {
 
     async deleteContent(id: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension;
-        return (await this.fetch(url, 'DELETE'))
+        return (await this.fetch(url, 'DELETE', false));
     }
 
     async getAttachments(space: string, id: string) {
@@ -368,6 +375,13 @@ export default class Confluence {
         }
         throw new Error("Pdf Generation Timeout");
     }
+}
+
+class HttpError extends Error {
+    constructor (public message: string, public code: number) {
+        super();
+    }
+
 }
 
 export { Confluence };
