@@ -46,6 +46,13 @@ export interface Space {
  */
 export interface Page {
     id: string;
+    history?: {
+        createdBy: {
+            email: string;
+            accountId: string;
+            displayName: string;
+        }
+    }
     metadata?: {
         labels?: {
             results: {
@@ -204,8 +211,7 @@ export default class Confluence {
         do {
             const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query + `&limit=100&start=${start}`;
             res = await this.fetch(url, 'GET', true);
-            //console.log('res', res);
-            if (res.statusCode !== 200) {
+            if (res.statusCode && res.statusCode !== 200) {
                 throw new HttpError(res.message, res.statusCode);
             }
             pages.push(...res.results);
