@@ -100,7 +100,7 @@ export interface PageInput {
         };
     };
     parentId?: string;
-    representation?: string;
+    representation?: 'storage' | 'wiki';
     space: string;
     title: string;
 }
@@ -169,7 +169,7 @@ export default class Confluence {
         return await res.buffer()
             .then(res => {
                 if (res.statusCode && res.statusCode >= 400) {
-                    throw new ConfluenceApiError(res.message, res.statusCode);
+                    throw new ConfluenceApiError(res.message, res.statusCode, res.data);
                 };
                 return res;
             });
