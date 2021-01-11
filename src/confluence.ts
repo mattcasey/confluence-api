@@ -57,6 +57,7 @@ export interface Page {
             accountId: string;
             displayName: string;
         };
+        createdDate: string; // ISODate
     };
     _links: {
         self: string;
@@ -78,6 +79,10 @@ export interface Page {
         };
     };
     title: string;
+    version?: {
+        number: number;
+        when: string; // ISODate
+    };
 }
 
 export interface PageInput {
@@ -153,9 +158,22 @@ export default class Confluence {
         }
         let res = await fetch(url, options);
         if (toJSON) {
-            return res.json();
+            return res.json()
+                .then(res => {
+                    console.log('res', res)
+                    if (res.statusCode && res.statusCode >= 400) {
+                        throw new ConfluenceApiError(res.message, res.statusCode, res.data);
+                    };
+                    return res;
+                });
         }
-        return await res.buffer();
+        return await res.buffer()
+            .then(res => {
+                if (res.statusCode && res.statusCode >= 400) {
+                    throw new ConfluenceApiError(res.message, res.statusCode);
+                };
+                return res;
+            });
     }
 
     /**
@@ -222,9 +240,6 @@ export default class Confluence {
         do {
             const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query + `&limit=100&start=${start}`;
             res = await this.fetch(url, 'GET', true);
-            if (res.statusCode && res.statusCode !== 200) {
-                throw new HttpError(res.message, res.statusCode);
-            }
             pages.push(...res.results);
             start = res.start + res.limit;
         } while (res.size === res.limit);
@@ -254,25 +269,27 @@ export default class Confluence {
         return (await this.fetch(url, 'POST', true, page))
     }
 
-    async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title?: string, content?: string, version?: string, representation?: string, metadata?, properties? }) {
+    async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title: string, content: string, version: number, representation?: string, metadata?, properties? }) {
         const page: any = {
             "id": id,
             "type": "page",
             "title": title,
-            "space": {
-                "key": space
-            },
-            "metadata": metadata,
-            "properties": properties
-        };
-        if (content) {
-            page.body = {
+            "body": {
                 "storage": {
                     "value": content,
                     "representation": representation || "storage"
                 }
-            }
-        }
+            },
+            "space": {
+                "key": space
+            },
+            "metadata": metadata,
+            "properties": properties,
+            "version": {
+                "number": version,
+                "minorEdit": minorEdit || false
+            },
+        };
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version";
         return (await this.fetch(url, 'PUT', true, page))
     }
@@ -391,9 +408,16 @@ export default class Confluence {
     }
 }
 
-class HttpError extends Error {
-    constructor (public message: string, public code: number) {
+class ConfluenceApiError extends Error {
+    authorized: boolean;
+    errors: any[];
+    valid: boolean;
+
+    constructor (public message: string, public code: number, data) {
         super();
+        this.errors = data.errors.map(e => e.message);
+        this.authorized = data.authorized;
+        this.valid = data.valid;
     }
 
 }
