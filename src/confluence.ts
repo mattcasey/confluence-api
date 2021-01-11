@@ -46,13 +46,24 @@ export interface Space {
  */
 export interface Page {
     id: string;
+    body?: {
+        storage: {
+            value: string;
+        };
+    };
     history?: {
         createdBy: {
             email: string;
             accountId: string;
             displayName: string;
-        }
-    }
+        };
+    };
+    _links: {
+        self: string;
+        editui: string;
+        tinyui: string;
+        webui: string;
+    };
     metadata?: {
         labels?: {
             results: {
@@ -61,7 +72,7 @@ export interface Page {
                 name: string;
                 prefix: 'global' | 'team' | 'my';
             }[];
-        },
+        };
         properties?: {
             [key: string]: { value: any }
         };
@@ -239,32 +250,29 @@ export default class Confluence {
             },
             "metadata": metadata
         };
-        console.log('post page', page)
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension;
         return (await this.fetch(url, 'POST', true, page))
     }
 
-    async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title: string, content: string, version: string, representation: string, metadata, properties }) {
-        const page = {
+    async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title?: string, content?: string, version?: string, representation?: string, metadata?, properties? }) {
+        const page: any = {
             "id": id,
             "type": "page",
             "title": title,
             "space": {
                 "key": space
             },
-            "version": {
-                "number": version,
-                "minorEdit": minorEdit || false
-            },
-            "body": {
+            "metadata": metadata,
+            "properties": properties
+        };
+        if (content) {
+            page.body = {
                 "storage": {
                     "value": content,
                     "representation": representation || "storage"
                 }
-            },
-            "metadata": metadata,
-            "properties": properties
-        };
+            }
+        }
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version";
         return (await this.fetch(url, 'PUT', true, page))
     }
