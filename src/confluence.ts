@@ -252,10 +252,10 @@ export default class Confluence {
             "space": {
                 "key": space
             },
-            "ancestors": [{
+            "ancestors": parentId ? [{
                 "type": "page",
-                "id": parentId ? parentId : (await this.getSpaceHomePage(space)).id
-            }],
+                "id": parentId
+            }] : [],
             "body": {
                 "storage": {
                     "value": content,
