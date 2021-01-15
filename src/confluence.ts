@@ -166,7 +166,7 @@ export default class Confluence {
                     return res;
                 });
         }
-        return await res.buffer()
+        return res.buffer()
             .then(res => {
                 if (res.statusCode && res.statusCode >= 400) {
                     throw new ConfluenceApiError(res.message, res.statusCode, res.data);
@@ -352,7 +352,7 @@ export default class Confluence {
 
     async deleteLabel(id: string, label: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + "/label?name=" + label;
-        return (await this.fetch(url, 'DELETE'));
+        return (await this.fetch(url, 'DELETE', false));
 
     }
 
