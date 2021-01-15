@@ -212,19 +212,19 @@ export default class Confluence {
      * @param spaceKey  to retrieve home page from
      */
     async getSpaceHomePage(spaceKey: string): Promise<Page> {
-        return await this.fetch(this.config.baseUrl + (await this.getSpace(spaceKey))._expandable.homepage);
+        return this.fetch(this.config.baseUrl + (await this.getSpace(spaceKey))._expandable.homepage);
     }
 
     async getContentById(id, options: { expanders?: string[] } = {}): Promise<Page> {
         const expanders = options.expanders || DEFAULT_EXPANDERS;
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=" + expanders.join();
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
     async getContentByPageTitle(space: string, title: string): Promise<Page> {
         const query = "?spaceKey=" + space + "&title=" + title + "&expand=body.storage,version";
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query;
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
     async getContentBySpace(space: string, options: { expanders?: string[], status?: 'any' | 'trashed' | 'current' } = {}): Promise<Page[]> {
@@ -265,7 +265,7 @@ export default class Confluence {
             "metadata": metadata
         };
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension;
-        return (await this.fetch(url, 'POST', true, page))
+        return this.fetch(url, 'POST', true, page)
     }
 
     async putContent({ space, id, title, content, minorEdit, version, representation = 'storage', metadata = {}, properties }: { space: string, id: string, minorEdit?: boolean, title: string, content: string, version: number, representation?: string, metadata?, properties? }) {
@@ -290,18 +290,18 @@ export default class Confluence {
             },
         };
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=body.storage,version";
-        return (await this.fetch(url, 'PUT', true, page))
+        return this.fetch(url, 'PUT', true, page)
     }
 
     async deleteContent(id: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension;
-        return (await this.fetch(url, 'DELETE', false));
+        return this.fetch(url, 'DELETE', false);
     }
 
     async getAttachments(space: string, id: string) {
         const query = "?spaceKey=" + space + "&expand=version,container";
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + "/child/attachment" + query;
-        return (await this.fetch(url))
+        return this.fetch(url)
     }
 
     async createAttachment(id: string, filepath: string, comment: string = '', minorEdit: boolean = false) {
@@ -342,37 +342,37 @@ export default class Confluence {
 
     async getLabels(id: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + "/label";
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
-    async postLabels(id: string, labels: string) {
+    async postLabels(id: string, labels: { name: string }[]) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + "/label";
-        return (await this.fetch(url, 'POST', true, labels));
+        return this.fetch(url, 'POST', true, labels);
     }
 
     async deleteLabel(id: string, label: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + "/label?name=" + label;
-        return (await this.fetch(url, 'DELETE', false));
+        return this.fetch(url, 'DELETE', false);
 
     }
 
     async search(query: string) {
         const url = this.config.baseUrl + this.config.apiPath + "/search" + this.config.extension + "?" + query;
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
     async getContentChildByContentId(id: string, child_type: string) {
         const url = this.config.baseUrl + this.config.apiPath +
             "/content/" + id +
             "/child/" + child_type + "?expand=body.storage,version";
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
     async getContentDescendantByContentId(id: string, child_type: string) {
         const url = this.config.baseUrl + this.config.apiPath +
             "/content/" + id +
             "/descendant/" + child_type + "?expand=body.storage,version";
-        return (await this.fetch(url));
+        return this.fetch(url);
     }
 
     async getPageAsPdf(id): Promise<any> {
