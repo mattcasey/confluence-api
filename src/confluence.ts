@@ -198,13 +198,38 @@ export default class Confluence {
      * @param space to retrieve
      * @throw Error SPACE not found if not found
      */
-    async getSpace(spaceKey: string): Promise<Space> {
+    async getSpace(spaceKey: string): Promise<Space | null> {
         const url = this.config.baseUrl + this.config.apiPath + "/space" + this.config.extension + "?spaceKey=" + spaceKey;
         let res = await this.fetch(url);
         if (res.size === 0) {
-            throw new Error("SPACE not found");
+            return null;
         }
         return res.results[0];
+    }
+
+    /**
+     * Create one space
+     *
+     * @param title of space to create
+     */
+    async createSpace(params: { name: string, key: string, description?: string }): Promise<Space> {
+        const url = this.config.baseUrl + this.config.apiPath + "/space" + this.config.extension;
+        const reqBody = {
+            name: params.name,
+            key: params.key,
+            description: undefined
+        };
+        if (params.description) {
+            reqBody.description = {
+                plain: {
+                    value: params.description,
+                    representation: 'plain'
+                }
+            }
+        };
+        let res = await this.fetch(url, 'POST', true, reqBody);
+        console.log('res', res);
+        return res;
     }
 
     /**
