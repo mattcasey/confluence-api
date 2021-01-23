@@ -240,16 +240,21 @@ export default class Confluence {
         return this.fetch(this.config.baseUrl + (await this.getSpace(spaceKey))._expandable.homepage);
     }
 
-    async getContentById(id, options: { expanders?: string[] } = {}): Promise<Page> {
-        const expanders = options.expanders || DEFAULT_EXPANDERS;
-        const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=" + expanders.join();
-        return this.fetch(url);
+    async setSpaceHomePage(spaceKey: string, pageId: string): Promise<Page> {
+        const url = this.config.baseUrl + this.config.apiPath +  "/space/" + spaceKey;
+        return this.fetch(url, 'PUT', true, { spaceKey, homepage: { id: pageId } });
     }
 
-    async getContentByPageTitle(space: string, title: string): Promise<Page> {
+    async getContentById(id, options: { expanders?: string[] } = {}): Promise<Page | null> {
+        const expanders = options.expanders || DEFAULT_EXPANDERS;
+        const url = this.config.baseUrl + this.config.apiPath + "/content/" + id + this.config.extension + "?expand=" + expanders.join();
+        return (await this.fetch(url)).results[0];
+    }
+
+    async getContentByPageTitle(space: string, title: string): Promise<Page | null> {
         const query = "?spaceKey=" + space + "&title=" + title + "&expand=body.storage,version";
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query;
-        return this.fetch(url);
+        return (await this.fetch(url)).results[0];
     }
 
     async getContentBySpace(space: string, options: { expanders?: string[], status?: 'any' | 'trashed' | 'current' } = {}): Promise<Page[]> {
@@ -437,9 +442,9 @@ class ConfluenceApiError extends Error {
     errors: any[];
     valid: boolean;
 
-    constructor (public message: string, public code: number, data) {
+    constructor (public message: string, public code: number, data: any = {}) {
         super();
-        this.errors = data.errors.map(e => e.message);
+        this.errors = data.errors?.map(e => e.message);
         this.authorized = data.authorized;
         this.valid = data.valid;
     }
