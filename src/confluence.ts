@@ -251,8 +251,8 @@ export default class Confluence {
         return (await this.fetch(url)).results[0];
     }
 
-    async getContentByPageTitle(space: string, title: string): Promise<Page | null> {
-        const query = "?spaceKey=" + space + "&title=" + title + "&expand=body.storage,version";
+    async getContentByPageTitle(title: string): Promise<Page | null> {
+        const query = "?title=" + title + "&expand=body.storage,version";
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query;
         return (await this.fetch(url)).results[0];
     }
