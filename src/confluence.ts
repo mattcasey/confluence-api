@@ -59,6 +59,11 @@ export interface Page {
         };
         createdDate: string; // ISODate
     };
+    space?: {
+        id: string;
+        key: string;
+        name: string;
+    };
     _links: {
         self: string;
         editui: string;
@@ -160,6 +165,7 @@ export default class Confluence {
         if (toJSON) {
             return res.json()
                 .then(res => {
+                    console.log(res)
                     if (res.statusCode && res.statusCode >= 400) {
                         throw new ConfluenceApiError(res.message, res.statusCode, res.data);
                     };
@@ -251,8 +257,9 @@ export default class Confluence {
         return (await this.fetch(url)).results[0];
     }
 
-    async getContentByPageTitle(title: string): Promise<Page | null> {
-        const query = "?title=" + title + "&expand=body.storage,version";
+    async getContentByPageTitle(title: string, options: { expanders?: string[] } = {}): Promise<Page | null> {
+        const expanders = options.expanders || DEFAULT_EXPANDERS;
+        const query = "?title=" + title + "&expand=" + expanders.join();
         const url = this.config.baseUrl + this.config.apiPath + "/content" + this.config.extension + query;
         return (await this.fetch(url)).results[0];
     }
