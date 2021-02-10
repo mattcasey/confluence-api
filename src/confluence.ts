@@ -165,7 +165,6 @@ export default class Confluence {
         if (toJSON) {
             return res.json()
                 .then(res => {
-                    console.log(res)
                     if (res.statusCode && res.statusCode >= 400) {
                         throw new ConfluenceApiError(res.message, res.statusCode, res.data);
                     };
@@ -234,7 +233,6 @@ export default class Confluence {
             }
         };
         let res = await this.fetch(url, 'POST', true, reqBody);
-        console.log('res', res);
         return res;
     }
 
