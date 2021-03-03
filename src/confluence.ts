@@ -162,7 +162,15 @@ export default class Confluence {
             options = { ...options, body: body }
         }
         let res = await fetch(url, options);
-        if (toJSON) {
+        const contentType = res.headers.get('content-type');
+        // TODO: parse xml response to get status code, etc. Ex: <?xml version="1.0" encoding="UTF-8" standalone="yes"?><status><status-code>401</status-code><message>Request rejected because issuer is either not authorized or not authorized to impersonate</message></status>
+        if (contentType === 'application/xml') {
+            return res.buffer()
+                .then(res => {
+                    throw new ConfluenceApiError(res.toString(), 500);
+                });
+        }
+        if (toJSON && (!contentType || contentType === 'application/json')) {
             return res.json()
                 .then(res => {
                     if (res.statusCode && res.statusCode >= 400) {
@@ -173,6 +181,7 @@ export default class Confluence {
         }
         return res.buffer()
             .then(res => {
+                console.log('res', res.toString())
                 if (res.statusCode && res.statusCode >= 400) {
                     throw new ConfluenceApiError(res.message, res.statusCode, res.data);
                 };
